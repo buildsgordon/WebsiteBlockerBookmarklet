@@ -1,7 +1,7 @@
 # WebsiteBlockerBookmarklet
 Simple chrome bookmarklet that redirects or blocks websites. Redirects to a distraction-free 5-minute timer.
 
-Why I made this
+Why I made this:
 I built this primarily for myself to fix my doomscrolling pattern. (there are many more better options online but I wanted to learn github pages by building this)
 
 Feel free to use this if you find it helpful. I have attached simple instructions:
