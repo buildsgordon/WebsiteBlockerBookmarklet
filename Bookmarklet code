@@ -1,19 +1,14 @@
-javascript:(function () {
-    const host = location.hostname;
-    const path = location.pathname;
-
-    // Redirect if on specific website
-    if (host.includes("[Enter website name]")) {
-        location.href = "https://buildsgordon.github.io/WebsiteBlockerBookmarklet/"; // Default is just the github project
+javascript:(function(){
+    if (location.hostname.includes("[BLOCKED WEBSITE]")) {
+        location.href = "https://buildsgordon.github.io/WebsiteBlockerBookmarklet/";
         return;
     }
 
-    // If on YouTube Shorts, redirect after 5 minutes
-    if (host.includes("youtube.com") && path.startsWith("/shorts")) {
+    if (location.hostname.includes("youtube.com") && location.pathname.startsWith("/shorts")) {
         setTimeout(() => {
             if (location.hostname.includes("youtube.com") && location.pathname.startsWith("/shorts")) {
                 location.href = "https://buildsgordon.github.io/WebsiteBlockerBookmarklet/";
             }
-        }, 300000); // 5 minutes in milliseconds
+        }, 300000);
     }
 })();
