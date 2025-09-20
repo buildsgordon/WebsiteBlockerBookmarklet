@@ -1,49 +1,363 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Stop Scrolling</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: #f5f5f5;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      text-align: center;
-    }
-    .box {
-      max-width: 600px;
-      padding: 2rem;
-      border: 2px solid #f5f5f5;
-      border-radius: 12px;
-    }
-    h1 {
-      font-size: 2rem;
-      margin-bottom: 1rem;
-    }
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-    li {
-      margin: 0.8rem 0;
-      font-size: 1.2rem;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Take a Break</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Crimson Text', serif;
+            background-color: #000;
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            cursor: none;
+            transition: all 3s ease-in-out;
+        }
+        
+        body.light-mode {
+            background-color: #fff;
+            color: #000;
+        }
+        
+        .content {
+            max-width: 80%;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 2s ease-in-out;
+        }
+        
+        .content.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .quote {
+            font-size: 2.5rem;
+            line-height: 1.4;
+            margin-bottom: 1rem;
+            font-weight: 400;
+        }
+        
+        .author {
+            font-size: 1.5rem;
+            opacity: 0.7;
+            font-style: italic;
+        }
+        
+        .timer {
+            font-size: 3rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+        }
+        
+        .meditation-text {
+            font-size: 2rem;
+            line-height: 1.6;
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+            position: absolute;
+            top: 70%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+        }
+        
+        .intro-text {
+            font-size: 2.2rem;
+            line-height: 1.5;
+            font-weight: 400;
+        }
+        
+        .meditation-text.show {
+            opacity: 1;
+        }
+        
+        .final-message {
+            font-size: 2.8rem;
+            line-height: 1.4;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 768px) {
+            .quote { font-size: 1.8rem; }
+            .timer { font-size: 2.5rem; }
+            .meditation-text { font-size: 1.5rem; }
+            .final-message { font-size: 2rem; }
+        }
+    </style>
 </head>
 <body>
-  <div class="box">
-    <h1>Stop Scrolling. Do Something Real.</h1>
-    <ul>
-      <li>Go downstairs. Reset your brain.</li>
-      <li>Work on your projects — future > shorts.</li>
-      <li>Play violin or review math.</li>
-      <li>Get up and move — even 5 minutes counts.</li>
-      <li>Scrolling = wasted time. Creating = progress.</li>
-    </ul>
-  </div>
+    <div class="content" id="content">
+        <div class="quote" id="quote"></div>
+        <div class="author" id="author"></div>
+    </div>
+
+    <script>
+        const quotes = [
+            { text: "The quieter you become, the more able you are to hear.", author: "Rumi" },
+            { text: "You have power over your mind - not outside events. Realize this, and you will find strength.", author: "Marcus Aurelius" },
+            { text: "Wherever you are, be there totally.", author: "Eckhart Tolle" },
+            { text: "The present moment is the only time over which we have dominion.", author: "Thích Nhất Hạnh" },
+            { text: "Silence is not empty, it is full of answers.", author: "Anonymous" },
+            { text: "Your task is not to seek for love, but merely to seek and find all the barriers within yourself that you have built against it.", author: "Rumi" },
+            { text: "The mind is everything. What you think you become.", author: "Buddha" },
+            { text: "Peace comes from within. Do not seek it without.", author: "Buddha" }
+        ];
+
+        const meditationPrompts = [
+            "Close your eyes and breathe deeply",
+            "Feel your body relax into the chair",
+            "Notice the silence around you",
+            "Let your thoughts drift away like clouds",
+            "Focus on your breath, in and out",
+            "What are you looking at? Your eyes should be closed",
+            "Still here? Good. Keep breathing",
+            "Your mind is learning to be still"
+        ];
+
+        let currentPhase = 'quotes';
+        let timerStartTime;
+        let timerDuration = 5 * 60 * 1000; // 5 minutes
+        let animationId;
+        let meditationTimeouts = [];
+        let isVisible = true;
+
+        const content = document.getElementById('content');
+        const quote = document.getElementById('quote');
+        const author = document.getElementById('author');
+
+        // Show initial quote
+        function showRandomQuote() {
+            const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+            quote.textContent = randomQuote.text;
+            author.textContent = `— ${randomQuote.author}`;
+            content.classList.add('show');
+        }
+
+        // Show intro before timer
+        function showIntro() {
+            currentPhase = 'intro';
+            
+            // Fade out quote
+            content.classList.remove('show');
+            
+            setTimeout(() => {
+                content.innerHTML = '<div class="intro-text">Time for a break.<br><br>Get comfortable.<br>Find a quiet space.<br>Let yourself breathe.</div>';
+                content.classList.add('show');
+                
+                // After 4 seconds, show "Starting timer"
+                setTimeout(() => {
+                    content.classList.remove('show');
+                    
+                    setTimeout(() => {
+                        content.innerHTML = '<div class="intro-text">Starting timer...</div>';
+                        content.classList.add('show');
+                        
+                        // Start actual timer after 2 seconds
+                        setTimeout(() => startTimer(), 2000);
+                    }, 2000);
+                }, 4000);
+            }, 2000);
+        }
+
+        // Start timer phase
+        function startTimer() {
+            currentPhase = 'timer';
+            timerStartTime = Date.now();
+            
+            // Fade out quote
+            content.classList.remove('show');
+            
+            setTimeout(() => {
+                content.innerHTML = '<div class="timer" id="timer">5:00</div>';
+                content.classList.add('show');
+                updateTimer();
+                scheduleMessages();
+            }, 2000);
+        }
+
+        // Update timer display
+        function updateTimer() {
+            if (currentPhase !== 'timer') return;
+            
+            const elapsed = Date.now() - timerStartTime;
+            const remaining = Math.max(0, timerDuration - elapsed);
+            const minutes = Math.floor(remaining / 60000);
+            const seconds = Math.floor((remaining % 60000) / 1000);
+            
+            const timerElement = document.getElementById('timer');
+            if (timerElement) {
+                timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }
+            
+            if (remaining <= 0) {
+                finishTimer();
+                return;
+            }
+            
+            animationId = requestAnimationFrame(updateTimer);
+        }
+
+        // Schedule meditation messages
+        function scheduleMessages() {
+            // Clear any existing timeouts
+            meditationTimeouts.forEach(timeout => clearTimeout(timeout));
+            meditationTimeouts = [];
+            
+            // First minute messages
+            const firstMinuteMessages = [
+                { time: 5000, text: "Close your eyes and breathe deeply" },
+                { time: 15000, text: "Feel your body relax into the chair" },
+                { time: 30000, text: "Notice the silence around you" },
+                { time: 45000, text: "Let your thoughts drift away like clouds" }
+            ];
+            
+            // Later messages
+            const laterMessages = [
+                { time: 90000, text: "What are you looking at? Your eyes should be closed" },
+                { time: 180000, text: "Still here? Good. Keep breathing" },
+                { time: 240000, text: "Your mind is learning to be still" }
+            ];
+            
+            [...firstMinuteMessages, ...laterMessages].forEach(message => {
+                const timeout = setTimeout(() => showMeditationText(message.text), message.time);
+                meditationTimeouts.push(timeout);
+            });
+        }
+
+        // Show meditation text
+        function showMeditationText(text) {
+            const meditationDiv = document.createElement('div');
+            meditationDiv.className = 'meditation-text';
+            meditationDiv.textContent = text;
+            document.body.appendChild(meditationDiv);
+            
+            // Fade in
+            setTimeout(() => meditationDiv.classList.add('show'), 100);
+            
+            // Fade out after 3 seconds
+            setTimeout(() => {
+                meditationDiv.classList.remove('show');
+                setTimeout(() => {
+                    if (meditationDiv.parentNode) {
+                        meditationDiv.parentNode.removeChild(meditationDiv);
+                    }
+                }, 2000);
+            }, 3000);
+        }
+
+        // Finish timer and show final message
+        function finishTimer() {
+            currentPhase = 'complete';
+            cancelAnimationFrame(animationId);
+            
+            // Clear meditation timeouts
+            meditationTimeouts.forEach(timeout => clearTimeout(timeout));
+            
+            // Remove any remaining meditation texts
+            document.querySelectorAll('.meditation-text').forEach(el => el.remove());
+            
+            // Fade out timer
+            content.classList.remove('show');
+            
+            setTimeout(() => {
+                // Transition to light mode
+                document.body.classList.add('light-mode');
+                
+                content.innerHTML = '<div class="final-message">You did it.<br>Now go chase your dreams.<br>Make today count.</div>';
+                content.classList.add('show');
+            }, 3000);
+        }
+
+        // Reset everything
+        function resetTimer() {
+            if (currentPhase === 'complete') return;
+            
+            currentPhase = 'quotes';
+            cancelAnimationFrame(animationId);
+            meditationTimeouts.forEach(timeout => clearTimeout(timeout));
+            meditationTimeouts = [];
+            
+            // Remove light mode
+            document.body.classList.remove('light-mode');
+            
+            // Remove any meditation texts
+            document.querySelectorAll('.meditation-text').forEach(el => el.remove());
+            
+            // Reset content
+            content.classList.remove('show');
+            setTimeout(() => {
+                showRandomQuote();
+                setTimeout(() => showIntro(), 4000);
+            }, 1000);
+        }
+
+        // Event listeners for resets
+        let mouseMovementThreshold = 10;
+        let lastMouseX = 0, lastMouseY = 0;
+        let hasMouseMoved = false;
+
+        document.addEventListener('mousemove', (e) => {
+            if (!hasMouseMoved) {
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+                hasMouseMoved = true;
+                return;
+            }
+            
+            const deltaX = Math.abs(e.clientX - lastMouseX);
+            const deltaY = Math.abs(e.clientY - lastMouseY);
+            
+            if (deltaX > mouseMovementThreshold || deltaY > mouseMovementThreshold) {
+                resetTimer();
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+            }
+        });
+
+        document.addEventListener('keydown', () => {
+            resetTimer();
+        });
+
+        // Handle tab visibility
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                isVisible = false;
+            } else {
+                if (!isVisible) {
+                    resetTimer();
+                }
+                isVisible = true;
+            }
+        });
+
+        // Handle window focus
+        window.addEventListener('blur', () => {
+            isVisible = false;
+        });
+
+        window.addEventListener('focus', () => {
+            if (!isVisible) {
+                resetTimer();
+            }
+            isVisible = true;
+        });
+
+        // Start the experience
+        showRandomQuote();
+        setTimeout(() => showIntro(), 4000);
+    </script>
 </body>
 </html>
