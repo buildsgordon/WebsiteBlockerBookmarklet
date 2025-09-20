@@ -1,2 +1,2 @@
 # WebsiteBlockerBookmarklet
-Simple chrome bookmarklet that blocks websites through redirection
+Simple chrome bookmarklet that redirects blocked websites.
