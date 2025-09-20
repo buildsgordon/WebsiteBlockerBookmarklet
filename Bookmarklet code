@@ -4,7 +4,7 @@ javascript:(function () {
 
     // Redirect if on specific website
     if (host.includes("[Enter website name]")) {
-        location.href = "[enter redirect page"; // Default is just the github project
+        location.href = "https://buildsgordon.github.io/WebsiteBlockerBookmarklet/"; // Default is just the github project
         return;
     }
 
@@ -12,7 +12,7 @@ javascript:(function () {
     if (host.includes("youtube.com") && path.startsWith("/shorts")) {
         setTimeout(() => {
             if (location.hostname.includes("youtube.com") && location.pathname.startsWith("/shorts")) {
-                location.href = "stop_scrolling.html";
+                location.href = "https://buildsgordon.github.io/WebsiteBlockerBookmarklet/";
             }
         }, 300000); // 5 minutes in milliseconds
     }
