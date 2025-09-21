@@ -60,6 +60,24 @@
             font-size: 3rem;
             font-weight: 600;
             margin-bottom: 2rem;
+            opacity: 1;
+            transform: translateY(0px);
+            animation: timerPulse 10s infinite ease-in-out;
+        }
+        
+        @keyframes timerPulse {
+            0% { 
+                opacity: 1; 
+                transform: translateY(0px); 
+            }
+            50% { 
+                opacity: 0; 
+                transform: translateY(10px); 
+            }
+            100% { 
+                opacity: 1; 
+                transform: translateY(0px); 
+            }
         }
         
         .meditation-text {
@@ -194,8 +212,17 @@
             
             const elapsed = Date.now() - timerStartTime;
             const remaining = Math.max(0, timerDuration - elapsed);
-            const minutes = Math.floor(remaining / 60000);
-            const seconds = Math.floor((remaining % 60000) / 1000);
+            
+            // Don't start countdown until after first second
+            let displayTime;
+            if (elapsed < 1000) {
+                displayTime = timerDuration; // Show 5:00 for first second
+            } else {
+                displayTime = remaining;
+            }
+            
+            const minutes = Math.floor(displayTime / 60000);
+            const seconds = Math.floor((displayTime % 60000) / 1000);
             
             const timerElement = document.getElementById('timer');
             if (timerElement) {
@@ -281,7 +308,35 @@
             }, 3000);
         }
 
-        // Reset everything
+        // Reset only timer (not entire cycle)
+        function resetTimerOnly() {
+            if (currentPhase !== 'timer') return;
+            
+            cancelAnimationFrame(animationId);
+            meditationTimeouts.forEach(timeout => clearTimeout(timeout));
+            meditationTimeouts = [];
+            
+            // Remove any meditation texts immediately
+            document.querySelectorAll('.meditation-text').forEach(el => el.remove());
+            
+            // Quick fade out and restart timer
+            content.classList.remove('show');
+            
+            setTimeout(() => {
+                // Reset timer variables
+                timerStartTime = Date.now();
+                
+                // Show timer immediately
+                content.innerHTML = '<div class="timer" id="timer">5:00</div>';
+                content.classList.add('show');
+                
+                // Restart timer and messages
+                updateTimer();
+                scheduleMessages();
+            }, 500); // Much shorter transition
+        }
+
+        // Reset everything (for tab switching)
         function resetTimer() {
             if (currentPhase === 'complete') return;
             
@@ -310,6 +365,9 @@
         let hasMouseMoved = false;
 
         document.addEventListener('mousemove', (e) => {
+            // Only reset during timer phase
+            if (currentPhase !== 'timer') return;
+            
             if (!hasMouseMoved) {
                 lastMouseX = e.clientX;
                 lastMouseY = e.clientY;
@@ -321,14 +379,17 @@
             const deltaY = Math.abs(e.clientY - lastMouseY);
             
             if (deltaX > mouseMovementThreshold || deltaY > mouseMovementThreshold) {
-                resetTimer();
+                resetTimerOnly();
                 lastMouseX = e.clientX;
                 lastMouseY = e.clientY;
             }
         });
 
         document.addEventListener('keydown', () => {
-            resetTimer();
+            // Only reset during timer phase
+            if (currentPhase === 'timer') {
+                resetTimerOnly();
+            }
         });
 
         // Handle tab visibility
@@ -336,8 +397,8 @@
             if (document.hidden) {
                 isVisible = false;
             } else {
-                if (!isVisible) {
-                    resetTimer();
+                if (!isVisible && currentPhase === 'timer') {
+                    resetTimerOnly();
                 }
                 isVisible = true;
             }
@@ -349,8 +410,8 @@
         });
 
         window.addEventListener('focus', () => {
-            if (!isVisible) {
-                resetTimer();
+            if (!isVisible && currentPhase === 'timer') {
+                resetTimerOnly();
             }
             isVisible = true;
         });
